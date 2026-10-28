@@ -6,7 +6,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: daw421/cloudlocal
 
 jobs:
   deploy:
@@ -18,8 +17,9 @@ jobs:
       - name: Build and push to GHCR
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -f docker/wordpress/Dockerfile .
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+          docker build -t ${{ env.REGISTRY }}/$IMAGE_NAME:${{ github.sha }} -f docker/wordpress/Dockerfile .
+          docker push ${{ env.REGISTRY }}/$IMAGE_NAME:${{ github.sha }}
 
       - name: Deploy to K3s via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -28,8 +28,5 @@ jobs:
           username: root
           key: ${{ secrets.ECS_SSH_KEY }}
           script: |
-             k3s ctr images pull --user ${{ github.actor }}:${{ secrets.GHCR_PAT }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            
-            kubectl set image deployment/wordpress wordpress=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            
+            kubectl set image deployment/wordpress wordpress=docker.io/library/wordpress-custom:6.4.2
             kubectl rollout status deployment/wordpress
