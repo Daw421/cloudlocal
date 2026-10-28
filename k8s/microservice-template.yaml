@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resource-api
+  labels:
+    app: resource-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resource-api
+  template:
+    metadata:
+      labels:
+        app: resource-api
+    spec:
+      containers:
+        - name: resource-api
+          image: <YOUR_GHCR_REGISTRY>/resource-api:latest   # 预留位：后续替换为微服务镜像
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR
+              value: "nacos-headless:8848"
+            - name: SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR
+              value: "nacos-headless:8848"
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resource-api
+  labels:
+    app: resource-api
+spec:
+  selector:
+    app: resource-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
