@@ -36,6 +36,7 @@ spec:
       containers:
         - name: wordpress
           image: docker.io/library/wordpress-custom:6.4.2 
+          imagePullPolicy: IfNotPresent 
           envFrom:
             - secretRef:
                 name: wordpress-db

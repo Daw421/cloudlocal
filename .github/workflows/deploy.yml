@@ -28,7 +28,7 @@ jobs:
           username: root
           key: ${{ secrets.ECS_SSH_KEY }}
           script: |
-            sudo k3s ctr images pull --user ${{ github.actor }}:${{ secrets.GHCR_PAT }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+             k3s ctr images pull --user ${{ github.actor }}:${{ secrets.GHCR_PAT }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             
             kubectl set image deployment/wordpress wordpress=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             
