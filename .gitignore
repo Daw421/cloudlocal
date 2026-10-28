@@ -1,3 +1,4 @@
+# 排除敏感环境和密钥
 .env
 *.pem
 *.key
@@ -5,4 +6,3 @@
 kubeconfig
 .bash_history
 .acme.sh/
-node_modules/

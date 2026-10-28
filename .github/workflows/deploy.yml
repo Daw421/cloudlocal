@@ -1,0 +1,35 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: daw421/cloudlocal
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build and push to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -f docker/wordpress/Dockerfile .
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to K3s via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: root
+          key: ${{ secrets.ECS_SSH_KEY }}
+          script: |
+            sudo k3s ctr images pull --user ${{ github.actor }}:${{ secrets.GHCR_PAT }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            
+            kubectl set image deployment/wordpress wordpress=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            
+            kubectl rollout status deployment/wordpress
