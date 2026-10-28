@@ -1,0 +1,8 @@
+.env
+*.pem
+*.key
+*.crt
+kubeconfig
+.bash_history
+.acme.sh/
+node_modules/
